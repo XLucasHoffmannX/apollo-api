@@ -39,12 +39,12 @@ export class StoreController {
   }
 
   @UseGuards(AuthMiddleware)
-  @Get('/:companyId/:id')
+  @Get('/:companyId/:storeId')
   findOneByCompany(
-    @Param('id') id: string,
+    @Param('storeId') storeId: string,
     @Param('companyId') companyId: string,
   ) {
-    return this.storeService.findOneByCompany(id, companyId);
+    return this.storeService.findOneByCompany(storeId, companyId);
   }
 
   @UseGuards(AuthMiddleware)

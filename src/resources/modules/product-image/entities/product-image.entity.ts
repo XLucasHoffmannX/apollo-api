@@ -14,7 +14,9 @@ export class ProductImageEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => ProductEntity, (product) => product.images)
+  @ManyToOne(() => ProductEntity, (product) => product.images, {
+    nullable: false,
+  })
   product: ProductEntity;
 
   @Column({ name: 'url', length: 60, nullable: true })

@@ -22,8 +22,12 @@ export class ProductEntity {
   @ManyToOne(() => StoreEntity, (store) => store.products)
   store: StoreEntity;
 
-  @OneToMany(() => ProductImageEntity, (productImages) => productImages.product)
-  images: ProductImageEntity;
+  @OneToMany(
+    () => ProductImageEntity,
+    (productImages) => productImages.product,
+    { cascade: true },
+  )
+  images: ProductImageEntity[];
 
   @Column({
     name: 'price',

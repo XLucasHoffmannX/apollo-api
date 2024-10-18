@@ -59,11 +59,11 @@ export class StoreService {
     }
   }
 
-  async findOneByCompany(id: string, companyId: string) {
+  async findOneByCompany(storeId: string, companyId: string) {
     try {
       return await this.storeRepository.find({
         where: {
-          id: id,
+          id: storeId,
           company: {
             id: companyId,
           },

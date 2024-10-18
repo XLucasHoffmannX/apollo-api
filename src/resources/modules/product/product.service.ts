@@ -5,6 +5,7 @@ import { ProductEntity } from './entities/product.entity';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { StoreEntity } from '../store/entities/store.entity';
+import { ProductImageEntity } from '../product-image/entities/product-image.entity';
 
 @Injectable()
 export class ProductService {
@@ -14,11 +15,26 @@ export class ProductService {
 
     @InjectRepository(StoreEntity)
     private readonly storeRepository: Repository<StoreEntity>,
+
+    @InjectRepository(ProductImageEntity)
+    private readonly productImageRepository: Repository<ProductImageEntity>,
   ) {}
+
+  validateImageMimeType(image: Buffer): boolean {
+    const mimeType = image.toString('hex', 0, 4);
+    const validMimeTypes = [
+      '89504e47', // PNG
+      'ffd8ffe0',
+      'ffd8ffe1',
+      'ffd8ffe2',
+      'ffd8ffe3',
+      'ffd8ffe8', // JPG/JPEG
+    ];
+    return validMimeTypes.includes(mimeType);
+  }
 
   async create(createProductDto: CreateProductDto) {
     try {
-      // Busca a loja pela ID e valida se ela pertence à empresa
       const store = await this.storeRepository.findOne({
         where: {
           id: createProductDto.storeId,
@@ -39,7 +55,9 @@ export class ProductService {
         store: store,
       });
 
-      return await this.productRepository.save(newProduct);
+      const savedProduct = await this.productRepository.save(newProduct);
+
+      return savedProduct;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -54,17 +72,28 @@ export class ProductService {
   }
 
   async findByCompany(companyId: string) {
-    try {
-      /* buscar todos os produtos de todas as stores de uma empresa */
-      return await this.productRepository
-        .createQueryBuilder('p')
-        .innerJoin('p.store', 's')
-        .innerJoin('s.company', 'c')
-        .where('c.id = :companyId', { companyId })
-        .getMany();
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
+    // Busque os produtos cujas lojas pertencem à empresa especificada
+    const products = await this.productRepository.find({
+      where: {
+        store: {
+          company: {
+            id: companyId,
+          },
+        },
+      },
+      relations: ['images', 'store'], // Inclui as imagens e a loja relacionada
+    });
+
+    return products.map((product) => ({
+      ...product,
+      images: product.images.map((image) => {
+        const mimeType = this.validateImageMimeType(image.image)
+          ? 'image/jpeg'
+          : 'image/png';
+        const base64Image = image.image.toString('base64');
+        return `data:${mimeType};base64,${base64Image}`;
+      }),
+    }));
   }
 
   async findOne(id: string) {
@@ -97,7 +126,16 @@ export class ProductService {
         );
       }
 
-      return products;
+      return products.map((product) => ({
+        ...product,
+        images: product.images.map((image) => {
+          const mimeType = this.validateImageMimeType(image.image)
+            ? 'image/jpeg'
+            : 'image/png';
+          const base64Image = image.image.toString('base64');
+          return `data:${mimeType};base64,${base64Image}`;
+        }),
+      }));
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

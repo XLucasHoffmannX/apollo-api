@@ -1,18 +1,18 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
   Param,
   Delete,
   Patch,
   UsePipes,
+  UseInterceptors,
+  UploadedFiles,
+  Get,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductImageService } from './product-image.service';
-import {
-  CreateProductImageDto,
-  createProductImageSchema,
-} from './dto/create-product-image.dto';
+import { CreateProductImageDto } from './dto/create-product-image.dto';
 import {
   UpdateProductImageDto,
   updateProductImageSchema,
@@ -24,19 +24,22 @@ export class ProductImageController {
   constructor(private readonly productImageService: ProductImageService) {}
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createProductImageSchema))
-  async create(@Body() createProductImageDto: CreateProductImageDto) {
-    return this.productImageService.create(createProductImageDto);
-  }
-
-  @Get()
-  async findAll() {
-    return this.productImageService.findAll();
+  @UseInterceptors(FilesInterceptor('images', 10))
+  async create(
+    @Body() createProductImageDto: CreateProductImageDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.productImageService.create(createProductImageDto, files);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.productImageService.findOne(id);
+  }
+
+  @Get('/show/:id')
+  async findImage(@Param('id') id: string) {
+    return this.productImageService.findImage(id);
   }
 
   @Patch(':id')
