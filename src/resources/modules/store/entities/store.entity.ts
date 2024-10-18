@@ -14,7 +14,9 @@ export class StoreEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => CompanyEntity, (company) => company.stores)
+  @ManyToOne(() => CompanyEntity, (company) => company.stores, {
+    nullable: false,
+  })
   company: CompanyEntity;
 
   @OneToMany(() => ProductEntity, (store) => store.store)

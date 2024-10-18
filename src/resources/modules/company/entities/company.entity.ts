@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { UserEntity } from '../../user/entities/user.entity';
 import { StoreEntity } from '../../store/entities/store.entity';
+import { ProductEntity } from '../../product/entities/product.entity';
 
 @Entity({ name: 'companies' })
 export class CompanyEntity {

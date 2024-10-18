@@ -33,7 +33,9 @@ export class UserEntity {
   @Column({ name: 'password', nullable: false })
   password: string;
 
-  @ManyToOne(() => CompanyEntity, (company) => company.users)
+  @ManyToOne(() => CompanyEntity, (company) => company.users, {
+    nullable: false,
+  })
   company: CompanyEntity;
 
   @CreateDateColumn({ name: 'created_at' })

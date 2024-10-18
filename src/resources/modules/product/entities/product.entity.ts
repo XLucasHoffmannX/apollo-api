@@ -25,7 +25,14 @@ export class ProductEntity {
   @OneToMany(() => ProductImageEntity, (productImages) => productImages.product)
   images: ProductImageEntity;
 
-  @Column({ name: 'price', nullable: false, default: 0 })
+  @Column({
+    name: 'price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    nullable: false,
+    default: 0,
+  })
   price: number;
 
   @Column({ name: 'description', length: 140, nullable: false, default: '' })

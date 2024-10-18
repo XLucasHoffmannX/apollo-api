@@ -6,12 +6,16 @@ import { Repository } from 'typeorm';
 import * as jsonwebtoken from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { CompanyEntity } from '../company/entities/company.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+
+    @InjectRepository(CompanyEntity)
+    private companyRepository: Repository<CompanyEntity>,
   ) {}
 
   private createToken(userId: string) {
@@ -60,7 +64,7 @@ export class UserService {
       return {
         user: user,
         token: accessToken,
-        refresh_token: refreshToken,
+        refreshToken: refreshToken,
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -69,9 +73,11 @@ export class UserService {
 
   async getUserLoggedService(user: UserEntity) {
     try {
-      const foundUser = await this.userRepository.findOne({
-        where: { id: user.id },
-      });
+      const foundUser = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.company', 'company')
+        .where('user.id = :id', { id: user.id })
+        .getOne();
 
       if (!foundUser) {
         throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
@@ -80,7 +86,7 @@ export class UserService {
       return {
         ...foundUser,
         password: undefined,
-        company: { id: 1 },
+        company: foundUser.company,
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -89,6 +95,7 @@ export class UserService {
 
   async registerUserService(data: RegisterUserDto) {
     try {
+      // Verifica se o usuário já existe
       const userExists = await this.userRepository.findOneBy({
         email: data.email,
       });
@@ -100,8 +107,8 @@ export class UserService {
         );
       }
 
+      // Criptografa a senha
       const passwordEncrypt = await bcrypt.hash(data.password, 10);
-
       data.password = passwordEncrypt;
 
       if (!passwordEncrypt) {
@@ -111,7 +118,18 @@ export class UserService {
         );
       }
 
-      const userCreated = await this.userRepository.save(data);
+      const company = this.companyRepository.create({
+        name: `Empresa de ${data.name}`,
+      });
+
+      const companyCreated = await this.companyRepository.save(company);
+
+      const user = this.userRepository.create({
+        ...data,
+        company: companyCreated,
+      });
+
+      const userCreated = await this.userRepository.save(user);
 
       const accessToken = this.createToken(userCreated.id);
       const refreshToken = this.createRefreshToken(userCreated.id);
@@ -119,7 +137,7 @@ export class UserService {
       return {
         user: userCreated,
         token: accessToken,
-        refresh_token: refreshToken,
+        refreshToken: refreshToken,
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

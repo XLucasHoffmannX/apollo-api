@@ -4,6 +4,10 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../modules/user/user.module';
+import { ProductModule } from '../modules/product/product.module';
+import { StoreModule } from '../modules/store/store.module';
+import { CompanyModule } from '../modules/company/company.module';
+import { ProductImageModule } from '../modules/product-image/product-image.module';
 
 @Module({
   imports: [
@@ -19,6 +23,10 @@ import { UserModule } from '../modules/user/user.module';
       entities: [__dirname + '/../**/*.entity{.js, .ts}'],
     }),
     UserModule,
+    ProductModule,
+    StoreModule,
+    CompanyModule,
+    ProductImageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

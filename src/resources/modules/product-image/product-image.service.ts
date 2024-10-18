@@ -1,26 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ProductImageEntity } from './entities/product-image.entity';
 import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { UpdateProductImageDto } from './dto/update-product-image.dto';
 
 @Injectable()
 export class ProductImageService {
-  create(createProductImageDto: CreateProductImageDto) {
-    return 'This action adds a new productImage';
+  constructor(
+    @InjectRepository(ProductImageEntity)
+    private readonly productImageRepository: Repository<ProductImageEntity>,
+  ) {}
+
+  async create(createProductImageDto: CreateProductImageDto) {
+    const productImage = this.productImageRepository.create(
+      createProductImageDto,
+    );
+    return this.productImageRepository.save(productImage);
   }
 
-  findAll() {
-    return `This action returns all productImage`;
+  async findAll() {
+    return this.productImageRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productImage`;
+  async findOne(id: string) {
+    const productImage = await this.productImageRepository.findOne({
+      where: { id },
+    });
+    if (!productImage) {
+      throw new NotFoundException('Image not found');
+    }
+    return productImage;
   }
 
-  update(id: number, updateProductImageDto: UpdateProductImageDto) {
-    return `This action updates a #${id} productImage`;
+  async update(id: string, updateProductImageDto: UpdateProductImageDto) {
+    const productImage = await this.productImageRepository.preload({
+      id,
+      ...updateProductImageDto,
+    });
+    if (!productImage) {
+      throw new NotFoundException('Image not found');
+    }
+    return this.productImageRepository.save(productImage);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productImage`;
+  async remove(id: string) {
+    const productImage = await this.findOne(id);
+    return this.productImageRepository.remove(productImage);
   }
 }

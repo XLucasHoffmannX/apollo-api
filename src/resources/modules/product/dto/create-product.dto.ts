@@ -16,6 +16,8 @@ export const createProductSchema = z.object({
   quantity: z.number().min(0, 'Quantidade deve ser positiva'),
   minQuantity: z.number().min(0, 'Quantidade mínima deve ser positiva'),
   category: z.string().optional(),
+  storeId: z.string(),
+  companyId: z.string(),
 });
 
 export type CreateProductDto = z.infer<typeof createProductSchema>;
