@@ -6,6 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { StoreEntity } from '../store/entities/store.entity';
 import { ProductImageEntity } from '../product-image/entities/product-image.entity';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ProductService {
@@ -31,6 +32,14 @@ export class ProductService {
       'ffd8ffe8', // JPG/JPEG
     ];
     return validMimeTypes.includes(mimeType);
+  }
+
+  private convertImageToBase64(image: Buffer): string {
+    const mimeType = this.validateImageMimeType(image)
+      ? 'image/jpeg'
+      : 'image/png';
+    const base64Image = image.toString('base64');
+    return `data:${mimeType};base64,${base64Image}`;
   }
 
   async create(createProductDto: CreateProductDto) {
@@ -71,20 +80,18 @@ export class ProductService {
     }
   }
 
-  async findByCompany(companyId: string) {
-    // Busque os produtos cujas lojas pertencem à empresa especificada
-    const products = await this.productRepository.find({
-      where: {
-        store: {
-          company: {
-            id: companyId,
-          },
-        },
-      },
-      relations: ['images', 'store'], // Inclui as imagens e a loja relacionada
-    });
+  async findByCompany(companyId: string, options: IPaginationOptions) {
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('p')
+      .innerJoin('p.store', 'store')
+      .innerJoin('store.company', 'company')
+      .where('company.id = :companyId', { companyId })
+      .leftJoinAndSelect('p.images', 'images')
+      .orderBy('p.createdAt', 'DESC');
 
-    return products.map((product) => ({
+    const products = await paginate<ProductEntity>(queryBuilder, options);
+
+    const paginatedProducts = products.items.map((product) => ({
       ...product,
       images: product.images.map((image) => {
         const mimeType = this.validateImageMimeType(image.image)
@@ -94,6 +101,11 @@ export class ProductService {
         return `data:${mimeType};base64,${base64Image}`;
       }),
     }));
+
+    return {
+      ...products,
+      items: paginatedProducts,
+    };
   }
 
   async findOne(id: string) {

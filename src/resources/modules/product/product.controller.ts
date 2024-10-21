@@ -8,6 +8,10 @@ import {
   Delete,
   UsePipes,
   UseGuards,
+  Req,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import {
@@ -38,16 +42,27 @@ export class ProductController {
     return this.productService.findAll();
   }
 
+  /* Busca todos os produtos por StoreId */
   @UseGuards(AuthMiddleware)
   @Get('store/:storeId')
   findByStore(@Param('storeId') storeId: string) {
     return this.productService.findByStore(storeId);
   }
 
+  /* Busca todos os produtos por CompanyId */
   @UseGuards(AuthMiddleware)
   @Get(':companyId')
-  findByCompany(@Param('companyId') companyId: string) {
-    return this.productService.findByCompany(companyId);
+  findByCompany(
+    @Param('companyId') companyId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Req() req,
+  ) {
+    return this.productService.findByCompany(companyId, {
+      page,
+      limit,
+      route: `${req.protocol}://${req.get('host')}/products/`,
+    });
   }
 
   @Get('/all/:id')
