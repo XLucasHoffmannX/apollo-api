@@ -97,9 +97,8 @@ export class ProductService {
       .leftJoinAndSelect('p.images', 'images');
 
     if (search) {
-      queryBuilder.andWhere('(p.name ILIKE :search OR p.id = :searchId)', {
+      queryBuilder.andWhere('p.name ILIKE :search', {
         search: `%${search}%`,
-        searchId: search,
       });
     }
 
