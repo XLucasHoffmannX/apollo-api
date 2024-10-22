@@ -57,12 +57,17 @@ export class ProductController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
     @Req() req,
+    @Query('search') search?: string,
   ) {
-    return this.productService.findByCompany(companyId, {
-      page,
-      limit,
-      route: `${req.protocol}://${req.get('host')}/products/`,
-    });
+    return this.productService.findByCompany(
+      companyId,
+      {
+        page,
+        limit,
+        route: `${req.protocol}://${req.get('host')}/products/`,
+      },
+      search,
+    );
   }
 
   @Get('/all/:id')
@@ -76,8 +81,9 @@ export class ProductController {
     return this.productService.update(id, updateProductDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(id);
+  @UseGuards(AuthMiddleware)
+  @Delete(':companyId/:id')
+  remove(@Param('companyId') companyId: string, @Param('id') id: string) {
+    return this.productService.remove(companyId, id);
   }
 }

@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { StoreEntity } from '../../store/entities/store.entity';
 import { ProductImageEntity } from '../../product-image/entities/product-image.entity';
+import { DecimalTransformer } from 'src/resources/shared/utils/DecimalTransform';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
@@ -36,6 +37,7 @@ export class ProductEntity {
     scale: 2,
     nullable: false,
     default: 0,
+    transformer: DecimalTransformer,
   })
   price: number;
 

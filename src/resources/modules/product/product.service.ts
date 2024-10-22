@@ -5,8 +5,9 @@ import { ProductEntity } from './entities/product.entity';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { StoreEntity } from '../store/entities/store.entity';
-import { ProductImageEntity } from '../product-image/entities/product-image.entity';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import { CompanyEntity } from '../company/entities/company.entity';
+import { ProductImageEntity } from '../product-image/entities/product-image.entity';
 
 @Injectable()
 export class ProductService {
@@ -16,6 +17,9 @@ export class ProductService {
 
     @InjectRepository(StoreEntity)
     private readonly storeRepository: Repository<StoreEntity>,
+
+    @InjectRepository(CompanyEntity)
+    private readonly companyRepository: Repository<CompanyEntity>,
 
     @InjectRepository(ProductImageEntity)
     private readonly productImageRepository: Repository<ProductImageEntity>,
@@ -80,14 +84,26 @@ export class ProductService {
     }
   }
 
-  async findByCompany(companyId: string, options: IPaginationOptions) {
+  async findByCompany(
+    companyId: string,
+    options: IPaginationOptions,
+    search?: string,
+  ) {
     const queryBuilder = this.productRepository
       .createQueryBuilder('p')
       .innerJoin('p.store', 'store')
       .innerJoin('store.company', 'company')
       .where('company.id = :companyId', { companyId })
-      .leftJoinAndSelect('p.images', 'images')
-      .orderBy('p.createdAt', 'DESC');
+      .leftJoinAndSelect('p.images', 'images');
+
+    if (search) {
+      queryBuilder.andWhere('(p.name ILIKE :search OR p.id = :searchId)', {
+        search: `%${search}%`,
+        searchId: search,
+      });
+    }
+
+    queryBuilder.orderBy('p.createdAt', 'DESC');
 
     const products = await paginate<ProductEntity>(queryBuilder, options);
 
@@ -168,16 +184,32 @@ export class ProductService {
     }
   }
 
-  async remove(id: string) {
+  async remove(companyId: string, id: string) {
     try {
-      const product = await this.productRepository.findOne({ where: { id } });
+      const company = await this.companyRepository.findOne({
+        where: { id: companyId },
+      });
+
+      if (!company) {
+        throw new HttpException('Empresa não encontrada', HttpStatus.NOT_FOUND);
+      }
+
+      const product = await this.productRepository.findOne({
+        where: { id },
+        relations: ['images'], // Carrega as imagens associadas
+      });
 
       if (!product) {
         throw new HttpException('Produto não encontrado', HttpStatus.NOT_FOUND);
       }
 
-      await this.productRepository.delete(id);
-      return { message: 'Produto removido com sucesso' };
+      // Marca as imagens associadas como deletadas (soft delete)
+      await this.productImageRepository.softRemove(product.images);
+
+      // Marca o produto como deletado (soft delete)
+      await this.productRepository.softRemove(product);
+
+      return { message: 'Produto removido com sucesso (soft delete)' };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
