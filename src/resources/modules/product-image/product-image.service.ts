@@ -9,12 +9,16 @@ import { CreateProductImageDto } from './dto/create-product-image.dto';
 import { ProductImageEntity } from './entities/product-image.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CompanyEntity } from '../company/entities/company.entity';
 
 @Injectable()
 export class ProductImageService {
   constructor(
     @InjectRepository(ProductImageEntity)
     private readonly productImageRepository: Repository<ProductImageEntity>,
+
+    @InjectRepository(CompanyEntity)
+    private readonly companyRepository: Repository<CompanyEntity>,
   ) {}
 
   validateImageMimeType(image: Buffer): boolean {
@@ -34,6 +38,13 @@ export class ProductImageService {
     createProductImageDto: CreateProductImageDto,
     files: Express.Multer.File[],
   ) {
+    if (!files || files.length === 0) {
+      throw new HttpException(
+        'Nenhuma imagem foi enviada',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const productImages: ProductImageEntity[] = [];
 
     for (const file of files) {
@@ -49,15 +60,14 @@ export class ProductImageService {
       }
 
       const productImage = this.productImageRepository.create({
-        product: { id: createProductImageDto.productId }, // Relaciona a imagem com o produto
-        image: imageBuffer, // Armazena a imagem como Buffer no banco
-        url: file.originalname, // Salva o nome original do arquivo (opcional)
+        product: { id: createProductImageDto.productId },
+        image: imageBuffer,
+        url: file.originalname,
       });
 
       productImages.push(productImage);
     }
 
-    // Salva todas as imagens no banco de dados
     return this.productImageRepository.save(productImages);
   }
 
@@ -105,8 +115,20 @@ export class ProductImageService {
     return this.productImageRepository.save(productImage);
   }
 
-  async remove(id: string) {
-    const productImage = await this.findOne(id);
-    return this.productImageRepository.remove(productImage);
+  async remove(companyId: string, id: string) {
+    try {
+      const company = await this.companyRepository.findOne({
+        where: { id: companyId },
+      });
+
+      if (!company) {
+        throw new HttpException('Empresa não encontrada', HttpStatus.NOT_FOUND);
+      }
+
+      const productImage = await this.findOne(id);
+      return this.productImageRepository.softRemove(productImage);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 }

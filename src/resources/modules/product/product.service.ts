@@ -208,7 +208,7 @@ export class ProductService {
       // Marca o produto como deletado (soft delete)
       await this.productRepository.softRemove(product);
 
-      return { message: 'Produto removido com sucesso (soft delete)' };
+      return { message: 'Produto removido com sucesso' };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Get,
+  UseGuards,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductImageService } from './product-image.service';
@@ -18,6 +19,7 @@ import {
   updateProductImageSchema,
 } from './dto/update-product-image.dto';
 import { ZodValidationPipe } from 'src/resources/shared/pipes';
+import { AuthMiddleware } from 'src/resources/middlewares/auth.middleware';
 
 @Controller('product-images')
 export class ProductImageController {
@@ -51,8 +53,9 @@ export class ProductImageController {
     return this.productImageService.update(id, updateProductImageDto);
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.productImageService.remove(id);
+  @UseGuards(AuthMiddleware)
+  @Delete(':companyId/:id')
+  remove(@Param('companyId') companyId: string, @Param('id') id: string) {
+    return this.productImageService.remove(companyId, id);
   }
 }

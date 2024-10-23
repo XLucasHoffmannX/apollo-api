@@ -54,8 +54,8 @@ export class ProductController {
   @Get(':companyId')
   findByCompany(
     @Param('companyId') companyId: string,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit,
     @Req() req,
     @Query('search') search?: string,
   ) {
