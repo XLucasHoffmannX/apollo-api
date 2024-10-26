@@ -61,7 +61,7 @@ export class StoreService {
 
   async findOneByCompany(storeId: string, companyId: string) {
     try {
-      return await this.storeRepository.find({
+      const store = await this.storeRepository.find({
         where: {
           id: storeId,
           company: {
@@ -69,6 +69,8 @@ export class StoreService {
           },
         },
       });
+
+      return store[0];
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
