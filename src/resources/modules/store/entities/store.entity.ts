@@ -1,9 +1,12 @@
 import {
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { CompanyEntity } from '../../company/entities/company.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
@@ -28,9 +31,24 @@ export class StoreEntity {
   @Column({ name: 'name', length: 60, nullable: false })
   name: string;
 
-  @Column({ name: 'title', length: 60, nullable: false })
+  @Column({ name: 'domain', length: 60, nullable: false })
+  domain: string;
+
+  @Column({ name: 'status', nullable: false, default: true })
+  status: boolean;
+
+  @Column({ name: 'title', length: 60, nullable: false, unique: true })
   title: string;
 
   @Column({ name: 'description', length: 120, nullable: false })
   description: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: string;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  upadteAt: string;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { AuthClientService } from './auth-client.service';
-import { CreateAuthClientDto } from './dto/create-auth-client.dto';
-import { UpdateAuthClientDto } from './dto/update-auth-client.dto';
+import { CreateDto, createSchema } from './dto/create-auth-client.dto';
+import { ZodValidationPipe } from 'src/resources/shared/pipes';
 
 @Controller('auth-client')
 export class AuthClientController {
   constructor(private readonly authClientService: AuthClientService) {}
 
-  @Post()
-  create(@Body() createAuthClientDto: CreateAuthClientDto) {
-    return this.authClientService.create(createAuthClientDto);
+  @Post('/')
+  @UsePipes(new ZodValidationPipe(createSchema))
+  auth(@Body() createDto: CreateDto) {
+    return this.authClientService.authService(createDto);
   }
 
-  @Get()
-  findAll() {
-    return this.authClientService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authClientService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthClientDto: UpdateAuthClientDto) {
-    return this.authClientService.update(+id, updateAuthClientDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authClientService.remove(+id);
+  @Post('/create')
+  @UsePipes(new ZodValidationPipe(createSchema))
+  create(@Body() createDto: CreateDto) {
+    return this.authClientService.createService(createDto);
   }
 }

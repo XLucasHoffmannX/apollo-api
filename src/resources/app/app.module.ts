@@ -8,6 +8,8 @@ import { ProductModule } from '../modules/product/product.module';
 import { StoreModule } from '../modules/store/store.module';
 import { CompanyModule } from '../modules/company/company.module';
 import { ProductImageModule } from '../modules/product-image/product-image.module';
+import { AuthClientModule } from '../modules/auth-client/auth-client.module';
+import { ClientModule } from '../modules/client/client.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ProductImageModule } from '../modules/product-image/product-image.modul
     StoreModule,
     CompanyModule,
     ProductImageModule,
+    AuthClientModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [AppService],

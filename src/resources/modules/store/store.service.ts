@@ -59,6 +59,23 @@ export class StoreService {
     }
   }
 
+  async validateDomainService(domain: string) {
+    try {
+      // Procura se existe uma store com o domínio passado
+      const existingStore = await this.storeRepository.findOne({
+        where: { domain },
+      });
+
+      if (existingStore) {
+        return { available: false, message: 'Domínio já em uso' };
+      }
+
+      return { available: true, message: 'Domínio disponível' };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async findOneByCompany(storeId: string, companyId: string) {
     try {
       const store = await this.storeRepository.find({
@@ -112,6 +129,18 @@ export class StoreService {
 
       await this.storeRepository.delete(id);
       return { message: 'Loja removida com sucesso' };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /* AuthClient */
+  async findAllDomains(): Promise<string[]> {
+    try {
+      const stores = await this.storeRepository.find({
+        select: ['domain'],
+      });
+      return stores.map((store) => store.domain);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

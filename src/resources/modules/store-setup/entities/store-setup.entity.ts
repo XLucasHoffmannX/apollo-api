@@ -1,5 +1,4 @@
 import {
-  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
@@ -7,16 +6,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'auth-clients' })
-export class AuthClientEntity {
+@Entity({ name: 'store-setup' })
+export class StoreSetupEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'name', length: 24, nullable: false })
-  client: string;
-
-  @Column({ name: 'password', nullable: false })
-  password: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: string;

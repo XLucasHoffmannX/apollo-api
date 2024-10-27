@@ -6,6 +6,7 @@ import { ProductEntity } from './entities/product.entity';
 import { StoreEntity } from '../store/entities/store.entity';
 import { CompanyEntity } from '../company/entities/company.entity';
 import { ProductImageEntity } from '../product-image/entities/product-image.entity';
+import { StoreSetupEntity } from '../store-setup/entities/store-setup.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ProductImageEntity } from '../product-image/entities/product-image.enti
       StoreEntity,
       CompanyEntity,
       ProductImageEntity,
+      StoreSetupEntity,
     ]),
   ],
   controllers: [ProductController],

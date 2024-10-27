@@ -8,12 +8,14 @@ import {
   Delete,
   UseGuards,
   UsePipes,
+  Query,
 } from '@nestjs/common';
 import { StoreService } from './store.service';
 import { CreateStoreDto, createStoreSchema } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { AuthMiddleware } from 'src/resources/middlewares/auth.middleware';
 import { ZodValidationPipe } from 'src/resources/shared/pipes';
+import { AuthClientMiddleware } from 'src/resources/middlewares/auth-client.middleware';
 
 @Controller('store')
 export class StoreController {
@@ -24,6 +26,12 @@ export class StoreController {
   @Post()
   create(@Body() createStoreDto: CreateStoreDto) {
     return this.storeService.create(createStoreDto);
+  }
+
+  @UseGuards(AuthMiddleware)
+  @Get('/validate-domain')
+  validateDomain(@Query('domain') domain: string) {
+    return this.storeService.validateDomainService(domain);
   }
 
   @UseGuards(AuthMiddleware)
@@ -63,5 +71,12 @@ export class StoreController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.storeService.remove(id);
+  }
+
+  /* AuthClient */
+  @UseGuards(AuthClientMiddleware)
+  @Get('/domains')
+  findAllDomains() {
+    return this.storeService.findAllDomains();
   }
 }
