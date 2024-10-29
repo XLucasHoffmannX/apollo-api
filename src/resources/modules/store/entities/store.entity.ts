@@ -28,7 +28,7 @@ export class StoreEntity {
   @OneToMany(() => OrderEntity, (order) => order.store)
   orders: OrderEntity[];
 
-  @Column({ name: 'name', length: 60, nullable: false })
+  @Column({ name: 'name', length: 60, nullable: false, unique: true })
   name: string;
 
   @Column({ name: 'domain', length: 60, nullable: false })
@@ -37,7 +37,7 @@ export class StoreEntity {
   @Column({ name: 'status', nullable: false, default: true })
   status: boolean;
 
-  @Column({ name: 'title', length: 60, nullable: false, unique: true })
+  @Column({ name: 'title', length: 60, nullable: false })
   title: string;
 
   @Column({ name: 'description', length: 120, nullable: false })
