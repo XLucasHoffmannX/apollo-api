@@ -1,10 +1,12 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { StoreEntity } from './entities/store.entity';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { CompanyEntity } from '../company/entities/company.entity';
+import { StoreSetupEntity } from '../store-setup/entities/store-setup.entity';
+import Theme from 'src/resources/shared/constants/Theme';
 
 @Injectable()
 export class StoreService {
@@ -14,6 +16,9 @@ export class StoreService {
 
     @InjectRepository(CompanyEntity)
     private companyRepository: Repository<CompanyEntity>,
+
+    @InjectRepository(StoreSetupEntity)
+    private storeSetupRepository: Repository<StoreSetupEntity>,
   ) {}
 
   async create(createStoreDto: CreateStoreDto) {
@@ -31,7 +36,35 @@ export class StoreService {
         company: company,
       });
 
-      return await this.storeRepository.save(newStore);
+      const store = await this.storeRepository.save(newStore);
+
+      const themeVariables = new Theme().use('blue');
+
+      const storeSetup = this.storeSetupRepository.create({
+        store: store,
+        themeType: 'blue',
+        setup: {
+          client: {
+            clientName: createStoreDto.name,
+            clientDescription: createStoreDto.description,
+            titleHmtl: createStoreDto.title,
+            clientDomain: createStoreDto.name,
+          },
+          theme: {
+            light: themeVariables.light,
+            dark: themeVariables.dark,
+            header: {
+              titleColor: createStoreDto.title || '#000',
+              subTitleColor: '#333',
+              logoAccept: true,
+            },
+          },
+        },
+      } as DeepPartial<StoreSetupEntity>);
+
+      await this.storeSetupRepository.save(storeSetup);
+
+      return store;
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
@@ -107,8 +140,8 @@ export class StoreService {
 
   async update(id: string, updateStoreDto: UpdateStoreDto) {
     try {
-      console.log(updateStoreDto);
       const store = await this.storeRepository.findOne({ where: { id } });
+
       if (!store) {
         throw new HttpException('Loja não encontrada', HttpStatus.NOT_FOUND);
       }

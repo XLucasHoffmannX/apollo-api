@@ -5,12 +5,14 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { CompanyEntity } from '../../company/entities/company.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
 import { OrderEntity } from '../../order/entities/order.entity';
+import { StoreSetupEntity } from '../../store-setup/entities/store-setup.entity';
 
 @Entity({ name: 'stores' })
 export class StoreEntity {
@@ -27,6 +29,11 @@ export class StoreEntity {
 
   @OneToMany(() => OrderEntity, (order) => order.store)
   orders: OrderEntity[];
+
+  @OneToOne(() => StoreSetupEntity, (storeSetup) => storeSetup.store, {
+    nullable: false,
+  })
+  storeSetup: StoreSetupEntity;
 
   @Column({ name: 'name', length: 60, nullable: false, unique: true })
   name: string;

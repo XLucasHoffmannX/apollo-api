@@ -10,6 +10,7 @@ import { CompanyModule } from '../modules/company/company.module';
 import { ProductImageModule } from '../modules/product-image/product-image.module';
 import { AuthClientModule } from '../modules/auth-client/auth-client.module';
 import { ClientModule } from '../modules/client/client.module';
+import { StoreSetupModule } from '../modules/store-setup/store-setup.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ClientModule } from '../modules/client/client.module';
     ProductImageModule,
     AuthClientModule,
     ClientModule,
+    StoreSetupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
