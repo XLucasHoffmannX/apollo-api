@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ClientService } from './client.service';
 
 import { AuthClientMiddleware } from 'src/resources/middlewares/auth-client.middleware';
@@ -11,5 +11,11 @@ export class ClientController {
   @Get('/domains')
   findAllDomains() {
     return this.clientService.findAllDomains();
+  }
+
+  @UseGuards(AuthClientMiddleware)
+  @Get('/domains/:domain')
+  async findByDomain(@Param('domain') domain: string) {
+    return await this.clientService.findByDomain(domain);
   }
 }
