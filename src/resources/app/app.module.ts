@@ -11,6 +11,7 @@ import { ProductImageModule } from '../modules/product-image/product-image.modul
 import { AuthClientModule } from '../modules/auth-client/auth-client.module';
 import { ClientModule } from '../modules/client/client.module';
 import { StoreSetupModule } from '../modules/store-setup/store-setup.module';
+import { PaymentModule } from '../modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { StoreSetupModule } from '../modules/store-setup/store-setup.module';
     AuthClientModule,
     ClientModule,
     StoreSetupModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
