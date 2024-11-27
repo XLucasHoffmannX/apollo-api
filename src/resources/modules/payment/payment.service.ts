@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { CompanyEntity } from '../company/entities/company.entity';
 import { PaymentEntity } from './entities/payment.entity';
 import { CreatePaymentLinkDto } from './dto/payment.dto';
-const pagarme = require('pagarme');
+import pagarme from 'pagarme';
 
 @Injectable()
 export class PaymentService {
@@ -16,9 +16,11 @@ export class PaymentService {
 
     @InjectRepository(PaymentEntity)
     private paymentRepository: Repository<PaymentEntity>,
-  ) { }
+  ) {}
 
-  async createPaymentLink(createPaymentLinkDto: CreatePaymentLinkDto): Promise<string> {
+  async createPaymentLink(
+    createPaymentLinkDto: CreatePaymentLinkDto,
+  ): Promise<string> {
     const { companyId, paymentData } = createPaymentLinkDto;
 
     try {
@@ -40,7 +42,10 @@ export class PaymentService {
 
       return link.url;
     } catch (error) {
-      console.error('Erro ao criar link de pagamento: ', error.response ? error.response : error);
+      console.error(
+        'Erro ao criar link de pagamento: ',
+        error.response ? error.response : error,
+      );
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
