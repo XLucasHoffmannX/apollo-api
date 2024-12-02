@@ -38,14 +38,6 @@ export class ProductService {
     return validMimeTypes.includes(mimeType);
   }
 
-  private convertImageToBase64(image: Buffer): string {
-    const mimeType = this.validateImageMimeType(image)
-      ? 'image/jpeg'
-      : 'image/png';
-    const base64Image = image.toString('base64');
-    return `data:${mimeType};base64,${base64Image}`;
-  }
-
   async create(createProductDto: CreateProductDto) {
     try {
       const store = await this.storeRepository.findOne({

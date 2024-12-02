@@ -18,4 +18,10 @@ export class ClientController {
   async findByDomain(@Param('domain') domain: string) {
     return await this.clientService.findByDomain(domain);
   }
+
+  @UseGuards(AuthClientMiddleware)
+  @Get('/product/:store')
+  async productByStore(@Param('store') store: string) {
+    return await this.clientService.findByStore(store);
+  }
 }
