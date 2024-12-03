@@ -80,13 +80,18 @@ export class ProductService {
     companyId: string,
     options: IPaginationOptions,
     search?: string,
+    storeId?: string,
   ) {
     const queryBuilder = this.productRepository
       .createQueryBuilder('p')
-      .innerJoin('p.store', 'store')
+      .innerJoinAndSelect('p.store', 'store')
       .innerJoin('store.company', 'company')
       .where('company.id = :companyId', { companyId })
       .leftJoinAndSelect('p.images', 'images');
+
+    if (storeId && !search) {
+      queryBuilder.andWhere('store.id = :storeId', { storeId });
+    }
 
     if (search) {
       queryBuilder.andWhere('p.name ILIKE :search', {
@@ -100,6 +105,7 @@ export class ProductService {
 
     const paginatedProducts = products.items.map((product) => ({
       ...product,
+      store: product.store,
       images: product.images.map((image) => {
         const mimeType = this.validateImageMimeType(image.image)
           ? 'image/jpeg'

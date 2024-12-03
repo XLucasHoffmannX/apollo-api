@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Theme from 'src/resources/shared/constants/Theme';
 import { ThemeType } from '../store-setup/entities/store-setup.entity';
 import { ProductEntity } from '../product/entities/product.entity';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ClientService {
@@ -26,6 +27,7 @@ export class ClientService {
       'ffd8ffe3',
       'ffd8ffe8',
     ];
+
     return validMimeTypes.includes(mimeType);
   }
 
@@ -61,21 +63,29 @@ export class ClientService {
     }
   }
 
-  async findByStore(storeId: string) {
+  async findByStore(
+    storeId: string,
+    options: IPaginationOptions,
+    search?: string,
+  ) {
     try {
-      const products = await this.productRepository.find({
-        where: { store: { id: storeId } },
-        relations: ['store', 'images'],
-      });
+      const queryBuilder = this.productRepository
+        .createQueryBuilder('p')
+        .innerJoinAndSelect('p.store', 'store')
+        .leftJoinAndSelect('p.images', 'images')
+        .where('store.id = :storeId', { storeId });
 
-      if (!products.length) {
-        throw new HttpException(
-          'Nenhum produto encontrado para esta loja',
-          HttpStatus.NOT_FOUND,
-        );
+      if (search) {
+        queryBuilder.andWhere('p.name ILIKE :search', {
+          search: `%${search}%`,
+        });
       }
 
-      return products.map((product) => ({
+      queryBuilder.orderBy('p.createdAt', 'DESC');
+
+      const products = await paginate<ProductEntity>(queryBuilder, options);
+
+      const paginatedProducts = products.items.map((product) => ({
         ...product,
         images: product.images.map((image) => {
           const mimeType = this.validateImageMimeType(image.image)
@@ -85,6 +95,11 @@ export class ClientService {
           return `data:${mimeType};base64,${base64Image}`;
         }),
       }));
+
+      return {
+        ...products,
+        items: paginatedProducts,
+      };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }

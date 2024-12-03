@@ -58,6 +58,7 @@ export class ProductController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit,
     @Req() req,
     @Query('search') search?: string,
+    @Query('storeId') storeId?: string,
   ) {
     return this.productService.findByCompany(
       companyId,
@@ -67,6 +68,7 @@ export class ProductController {
         route: `${req.protocol}://${req.get('host')}/products/`,
       },
       search,
+      storeId,
     );
   }
 
